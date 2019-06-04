@@ -1,4 +1,5 @@
 use std::fmt::{self, Display, Formatter};
+use std::net::TcpListener;
 
 use actix_web::{server, App, HttpRequest, Responder};
 
@@ -21,12 +22,12 @@ impl Display for Book {
 }
 
 impl Book {
-    fn new(id: u16, name: &str, author: &str, price: f32) -> Book {
+    fn new(id: u16, name: &str, author: &str, _price: f32) -> Book {
         Book {
-            id: id,
+            id,
             name: name.to_string(),
             _author: author.to_string(),
-            _price: price,
+            _price,
         }
     }
 }
@@ -40,19 +41,30 @@ fn books(_: &HttpRequest) -> impl Responder {
 
     books
         .iter()
-        .map(|b| b.to_string())
+        .map(Book::to_string)
         .collect::<Vec<String>>()
         .join("\n")
 }
 
+pub fn get_unused_tcp_port() -> u16 {
+    TcpListener::bind("127.0.0.1:0")
+        .unwrap()
+        .local_addr()
+        .unwrap()
+        .port()
+}
+
 fn main() {
+    let port = get_unused_tcp_port();
+    println!("Listening on URL: http://localhost:{}/", port);
+
     server::new(|| {
         App::new()
             .resource("/", |r| r.f(greet))
             .resource("/books", |r| r.f(books))
             .resource("/{name}", |r| r.f(greet))
     })
-    .bind("127.0.0.1:8000")
-    .expect("Can not bind to port 8000")
+    .bind(format!("127.0.0.1:{}", port))
+    .expect(&format!("Can not bind to port {}", port))
     .run();
 }
