@@ -1,2 +1,6 @@
 /target
 **/*.rs.bk
+.idea/actix-books.iml
+.idea/modules.xml
+.idea/vcs.xml
+.idea/workspace.xml
